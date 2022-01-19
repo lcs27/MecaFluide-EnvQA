@@ -1,0 +1,43 @@
+% Ce code a pour objectif de calculer la pollution stationnaire
+% avec source ponctuelle 
+
+%% Paramètre météo
+v= 5;%vitesse du vent à la hauteur de la cheminée [ms-1]
+P= 1.005e5;%pression à la hauteur de la cheminée [Pa]
+Ta= 288;%température de l'atmosphère à la hauteur de la cheminée [K.ATTENTION]
+%% Paramètre de cas
+v_comb = 20; %[g/m2/s] vitesse de combustion des fumées
+PCI = 30e3; %[J/g] chaleur de combustion
+S = 20000; %[m2] Surface du combustible en feu
+W = v_comb*S*PCI*10^-6; %puissance thermique émise par le foyer [MW]
+Q = 3.24*W; %Débit total de fumées traversant la section à hauteur d'émission  [kg/s]
+Hs= 90; %Hauteur réel [m]
+d= 160; %diamètre de cheminée[m]
+Ts= 523;%température de terme source [K, ATTENTION]
+dT = Ts - Ta;
+U = 0.54*(dT*W)^(1/5); %vitesse d'émission des fumées
+
+
+
+%% Paramètre de domaine A ADAPTER
+% Pas de l'espace
+dx= 200; %maillage en x[m]
+dy= 200; %maillage en y[m]
+dz= 200; %maillage en z[m]
+
+% Limite de domaine
+Lx=20000; %longeur en x[m]
+Ly=20000; %longeur en y[m]
+Lz=20000; %longeur en z[m]
+
+% Définition de domaine de calcul 
+[x,y,z]=meshgrid(0:dx:Lx, -Ly:dy:Ly,0:dz:Lz);
+%% Formule Gausienne
+% Surhauteur
+%delta_h= Briggs(U,d,v,P,Ts,Ta,x);
+delta_h=0;
+H=Hs+delta_h;
+% Coefficient de dispersion A ADAPTER en fonction de classe 
+sigma_y = 0.16.*x.*(1+0.0004.*x).^(-1/2); %coefficient trouvé pour ciel couvert, mileu urbain et vitesse du vent ~5 ms-1
+sigma_z = 0.14.*x.*(1+0.0003.*x).^(-1/2); %coefficient trouvé pour ciel couvert, mileu urbain et vitesse du vent ~5 ms-1
+C = Q./(2.*pi.*U.*sigma_y.*sigma_z).*exp(-y.^2./(2*sigma_y.^2)-(z-H).^2./(2.*sigma_z.^2));
